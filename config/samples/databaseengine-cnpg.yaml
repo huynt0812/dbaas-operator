@@ -1,0 +1,31 @@
+apiVersion: dbaas.io/v1
+kind: DatabaseEngine
+metadata:
+  name: cnpg-postgresql
+spec:
+  type: postgresql
+  provider: cnpg
+  operatorVersion: "1.23.0"
+
+  supportedVersions:
+    - "16.0"
+    - "16.1"
+    - "15.5"
+    - "15.6"
+    - "14.10"
+    - "14.11"
+
+  features:
+    backup: true
+    pitr: true
+    monitoring: true
+    proxy: true
+    horizontalScaling: true
+    verticalScaling: true
+    volumeExpansion: true
+
+  defaultConfig:
+    - name: max_connections
+      value: "100"
+    - name: shared_buffers
+      value: "128MB"

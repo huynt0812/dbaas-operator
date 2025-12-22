@@ -1,0 +1,15 @@
+apiVersion: dbaas.io/v1
+kind: OpsRequest
+metadata:
+  name: backup-postgresql-demo
+  namespace: default
+spec:
+  clusterRef:
+    name: postgresql-demo
+
+  type: Backup
+
+  backup:
+    backupName: postgresql-demo-manual-backup
+
+  ttlSecondsAfterFinished: 3600

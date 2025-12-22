@@ -1,0 +1,16 @@
+apiVersion: dbaas.io/v1
+kind: OpsRequest
+metadata:
+  name: scale-postgresql-demo
+  namespace: default
+spec:
+  clusterRef:
+    name: postgresql-demo
+
+  type: HorizontalScaling
+
+  horizontalScaling:
+    replicas: 5
+
+  # Auto-delete after 1 hour
+  ttlSecondsAfterFinished: 3600

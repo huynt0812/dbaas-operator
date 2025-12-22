@@ -1,0 +1,15 @@
+apiVersion: dbaas.io/v1
+kind: OpsRequest
+metadata:
+  name: upgrade-postgresql-demo
+  namespace: default
+spec:
+  clusterRef:
+    name: postgresql-demo
+
+  type: Upgrade
+
+  upgrade:
+    targetVersion: "16.1"
+
+  ttlSecondsAfterFinished: 3600

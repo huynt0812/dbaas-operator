@@ -1,0 +1,69 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: dbaas-operator-manager-role
+rules:
+- apiGroups:
+  - dbaas.io
+  resources:
+  - databaseclusters
+  - databaseengines
+  - backupstorages
+  - monitoringconfigs
+  - opsrequests
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - dbaas.io
+  resources:
+  - databaseclusters/status
+  - databaseengines/status
+  - backupstorages/status
+  - monitoringconfigs/status
+  - opsrequests/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - dbaas.io
+  resources:
+  - databaseclusters/finalizers
+  - opsrequests/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - postgresql.cnpg.io
+  resources:
+  - clusters
+  - backups
+  - scheduledbackups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  - configmaps
+  - services
+  - persistentvolumeclaims
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
