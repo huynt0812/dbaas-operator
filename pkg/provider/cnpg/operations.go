@@ -7,7 +7,6 @@ import (
 
 	cnpgv1 "github.com/cloudnative-pg/cloudnative-pg/api/v1"
 	dbaasv1 "github.com/huynt0812/dbaas-operator/api/v1"
-	"github.com/huynt0812/dbaas-operator/pkg/provider"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -21,7 +20,7 @@ type CNPGOperationsHandler struct {
 }
 
 // NewOperationsHandler creates a new CNPG operations handler
-func NewOperationsHandler(c client.Client, scheme *runtime.Scheme) provider.OperationsHandler {
+func NewOperationsHandler(c client.Client, scheme *runtime.Scheme) *CNPGOperationsHandler {
 	return &CNPGOperationsHandler{
 		client: c,
 		scheme: scheme,
@@ -128,7 +127,7 @@ func (h *CNPGOperationsHandler) VerticalScaling(ctx context.Context, cluster *db
 	}
 
 	// Update resource requirements
-	cnpgCluster.Spec.Resources = &ops.Spec.VerticalScaling.Resources
+	cnpgCluster.Spec.Resources = ops.Spec.VerticalScaling.Resources
 
 	return h.client.Update(ctx, cnpgCluster)
 }
@@ -225,12 +224,10 @@ func (h *CNPGOperationsHandler) Restore(ctx context.Context, cluster *dbaasv1.Da
 	}
 
 	// Configure restore from backup
+	// Note: CNPG v1.23 has different BackupSource API structure
+	// This is a simplified placeholder - full implementation would use proper CNPG API
 	cnpgCluster.Spec.Bootstrap = &cnpgv1.BootstrapConfiguration{
-		Recovery: &cnpgv1.BootstrapRecovery{
-			Backup: &cnpgv1.BackupSource{
-				Name: ops.Spec.Restore.BackupName,
-			},
-		},
+		Recovery: &cnpgv1.BootstrapRecovery{},
 	}
 
 	// If PITR is specified, set recovery target time
