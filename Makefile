@@ -73,11 +73,61 @@ uninstall: manifests ## Uninstall CRDs from the K8s cluster specified in ~/.kube
 
 .PHONY: deploy
 deploy: manifests ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && kubectl apply -k .
+	kubectl create namespace dbaas-system --dry-run=client -o yaml | kubectl apply -f -
+	kubectl apply -f config/rbac/role.yaml
+	kubectl apply -f config/manager/manager.yaml
 
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
-	cd config/manager && kubectl delete -k .
+	kubectl delete -f config/manager/manager.yaml
+	kubectl delete -f config/rbac/role.yaml
+
+.PHONY: deploy-cnpg
+deploy-cnpg: ## Install CloudNativePG operator
+	kubectl apply -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.23/releases/cnpg-1.23.0.yaml
+	@echo "Waiting for CNPG to be ready..."
+	kubectl wait --for=condition=Available --timeout=300s deployment/cnpg-controller-manager -n cnpg-system
+
+.PHONY: deploy-all
+deploy-all: deploy-cnpg install deploy ## Install CNPG, CRDs and deploy operator
+
+.PHONY: deploy-samples
+deploy-samples: ## Deploy sample resources
+	kubectl apply -f config/samples/databaseengine-cnpg.yaml
+	kubectl apply -f config/samples/postgresql-cluster.yaml
+
+.PHONY: quickstart
+quickstart: ## Quick start - install everything and create test cluster
+	@bash quickstart.sh
+
+.PHONY: status
+status: ## Show status of deployed resources
+	@echo "=== Operator Status ==="
+	@kubectl get deployment -n dbaas-system 2>/dev/null || echo "Operator not deployed"
+	@echo ""
+	@echo "=== CNPG Operator Status ==="
+	@kubectl get deployment -n cnpg-system 2>/dev/null || echo "CNPG not deployed"
+	@echo ""
+	@echo "=== DatabaseClusters ==="
+	@kubectl get databasecluster 2>/dev/null || echo "No DatabaseClusters found"
+	@echo ""
+	@echo "=== CNPG Clusters ==="
+	@kubectl get cluster 2>/dev/null || echo "No CNPG Clusters found"
+	@echo ""
+	@echo "=== OpsRequests ==="
+	@kubectl get opsrequest 2>/dev/null || echo "No OpsRequests found"
+
+.PHONY: logs
+logs: ## Show operator logs
+	kubectl logs -n dbaas-system deployment/dbaas-operator-controller-manager -f
+
+.PHONY: clean
+clean: ## Clean up everything
+	kubectl delete databasecluster --all --ignore-not-found=true
+	kubectl delete opsrequest --all --ignore-not-found=true
+	kubectl delete databaseengine --all --ignore-not-found=true
+	$(MAKE) undeploy
+	$(MAKE) uninstall
 
 CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
 .PHONY: controller-gen
